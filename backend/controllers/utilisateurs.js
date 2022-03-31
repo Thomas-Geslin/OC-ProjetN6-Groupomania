@@ -1,5 +1,6 @@
 const db = require('../config/db');
 const bcrypt = require('bcrypt');
+const jwt = require('jsonwebtoken');
 
 /* Fonction permettant à un nouvel utilisateur de s'inscrire */
 exports.signup = (req, res) => {
@@ -22,17 +23,29 @@ exports.login = (req, res) => {
     const password = req.body.loginData.loginPassword;
     db.query("SELECT * FROM utilisateur WHERE utilisateurEmail = ?;", [email], function(err, result) {
         if(err) throw err;
-        // Renvois une erreur si l'utilisateur n'existe pas
+        // Vérifie si l'utilisateur existe
         if(result.length === 0) {
         console.log('L\'utilisateur n\'existe pas !');
+        // Renvois une erreur si l'utilisateur n'existe pas
         return res.status(404).json({ message: 'L\'utilisateur n\'est pas dans la BDD !'});
         } else {
             const getPassword = result[0].utilisateurPassword;
             // Vérifie si le mdp rentré est bien le même que celui de la BDD
             if (bcrypt.compareSync(password, getPassword)) {
-                return res.status(200).json({ message: 'Connexion réussie !' })
+                console.log('Connexion réussie !');
+                // Si le mdp est bon valide la connexion et renvois un token d'identification
+                return res.status(200).json({
+                    userId: result.utilisateurId,
+                    token: jwt.sign(
+                      { userId: result.utilisateurId },
+                      'RANDOM_TOKEN_SECRET',
+                      { expiresIn: '24h' }
+                    )
+                });
             } else {
-                return res.status(400).json({ message: 'Mauvais mot de passe !' })
+                console.log('Mauvais mot de passe !')
+                // Si le mdp n'est pas bon bloque la connexion
+                return res.status(400).json({ message: 'Mauvais mot de passe !' });
             }
         }
     });

@@ -3,7 +3,7 @@ export default {
 	name: 'LoginPage',
     data: function() {
         return {
-            mode: 'signup',
+            mode: 'login',
             userEmail:'',
             userFirstName: '',
             userLastName: '',
@@ -50,8 +50,10 @@ export default {
             },
             body: JSON.stringify({loginData})
             })
-            .then(function() {
-                window.location.href = "http://localhost:8080/social-network";
+            .then(function(res) {
+                if(res.ok) {
+                    window.location.href = "http://localhost:8080/social-network"
+                }
             })
             .catch((err) => console.log(err));
         }

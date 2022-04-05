@@ -8,12 +8,20 @@ exports.signup = (req, res) => {
     const email = req.body.userData.userEmail;
     // Hash le mot de passe avant de l'insérer dans la base de donnée
     const password = bcrypt.hashSync(req.body.userData.userPassword, 10);
+    const picture = `${req.protocol}://${req.get('host')}/images/${req.body.userData.userPicture}`;
     const lastName = req.body.userData.userLastName;
     const firstName = req.body.userData.userFirstName;
-    db.query("INSERT INTO utilisateur (utilisateurEmail, utilisateurPassword, utilisateurFirstName, utilisateurLastName) VALUES (?, ?, ?, ?);", [email, password, lastName, firstName], function(err) {
+    db.query("SELECT utilisateurEmail FROM utilisateur WHERE utilisateurEmail=?", [email], function(err, result) {
         if(err) throw err;
-        return res.status(201).json({ message: "Utilisateur bien ajouté !" });
-    });
+        if(result.length === 1) {
+            return res.status(401).json({ message: 'Cet utilisateur existe déjà !' })
+        } else {
+            db.query("INSERT INTO utilisateur (utilisateurEmail, utilisateurPassword, utilisateurPicture, utilisateurFirstName, utilisateurLastName) VALUES (?, ?, ?, ?, ?);", [email, password, picture, lastName, firstName], function(err) {
+                if(err) throw err;
+                return res.status(201).json({ message: "Utilisateur bien ajouté !" });
+            });
+        }
+    })
 }
 
 
@@ -35,7 +43,7 @@ exports.login = (req, res) => {
                 console.log('Connexion réussie !');
                 // Si le mdp est bon valide la connexion et renvois un token d'identification
                 return res.status(200).json({
-                    userId: result.utilisateurId,
+                    userId: result[0].utilisateurId,
                     token: jwt.sign(
                       { userId: result.utilisateurId },
                       'RANDOM_TOKEN_SECRET',
@@ -49,4 +57,22 @@ exports.login = (req, res) => {
             }
         }
     });
+}
+
+/* Fonction permettant de récupérer l'utilisateur' */
+exports.getUser = (req, res) => {
+    const id = req.body.id;
+    db.query("SELECT * FROM utilisateur WHERE utilisateurId = ?;", [id], function(err, result) {
+        if(err) throw err;
+        return res.status(200).json(result)
+    });
+}
+
+/* Fonction permettant de supprimer un utilisateur */
+exports.deleteUser = (req, res) => {
+    const id = req.body.userId;
+    db.query("DELETE FROM utilisateur WHERE utilisateurId =?", [id], function(err) {
+        if(err) throw err;
+        return res.status(200).json({ message: 'Votre compte a bien été supprimé !' })
+    })
 }

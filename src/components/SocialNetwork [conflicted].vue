@@ -11,25 +11,21 @@ export default {
     methods:{
         /* Fonction envoyant les infos d'un nouveau post au backend */
         sendPost() {
-            // Ajoute un message d'alerte pour que l'utilisateur n'envoit pas de post par erreur
-            let confirm = window.confirm('Voulez vous poster ceci ?')
-            if(confirm) {
-                // Récupère le texte entré dans le champ dédié
-                const userId = this.id;
-                const postTxt = this.postTxt;
-                const postPic = this.postPicture;
-                // Requête envoyant les infos au backend et récupérant le post crée
-                fetch('http://localhost:3000/api/post/create', {
-                    method: "POST",
-                    headers: {
-                        'Accept': 'application/json',
-                        'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({userId, postTxt, postPic})
-                })
-                .then(function (res) { console.log(res) })
-                .catch(function(err) { console.log(err) });
-            }
+            // Récupère le texte entré dans le champ dédié
+            const userId = this.id;
+            const postTxt = this.postTxt;
+            const postPic = this.postPicture;
+            // Requête envoyant les infos au backend et récupérant le post crée
+            fetch('http://localhost:3000/api/post/create', {
+                method: "POST",
+                headers: {
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({userId, postTxt, postPic})
+            })
+            .then(function (res) { console.log(res) })
+            .catch(function(err) { console.log(err) });
         },
         /* Permet de récuperer l'image du post à envoyer au backend */
         picturePost() {
@@ -98,7 +94,7 @@ export default {
             postContainer.appendChild(postTextPart);
             // Ajoute l'image du post
             const imgLocation = document.createElement('img');
-            imgLocation.classList.add('main__post__container__postImage')
+            imgLocation.classList.add('main__post__container__')
             imgLocation.setAttribute('src', postImage);
             postContainer.appendChild(imgLocation);
             // Intègre le post au DOM
@@ -166,7 +162,7 @@ export default {
                 <input type="text" name="newPost" class="main__post__new__input" placeholder="Ajoutez un nouveau post..." v-model="postTxt">
                 <button class="main__post__new__button" @click="sendPost" onclick="window.location.reload();">Publier votre post</button>
                 <label for="file" class="main__post__new__label"><font-awesome-icon :icon="['fas', 'link']" /></label>
-                <input type="file" accept="images/*" id="file" class="main__post__new__file" @change="picturePost" multiple>
+                <input type="file" accept="images/*" id="file" class="main__post__new__file" @change="picturePost">
             </div> 
             
             <!-- <div class="main__post__container">
@@ -297,10 +293,6 @@ export default {
                                 position: absolute;
                                 right: 40px;
                                 padding-right: 40px;
-                                    &:hover {
-                                        box-shadow: 2px 7px 10px 0px #8a8a8a;
-                                        transition: .5s;
-                                    }
                             }
                             &__label {
                                 cursor: pointer;
@@ -344,9 +336,6 @@ export default {
                                 margin-top: 30px;
                                 padding-bottom: 40px;
                                 width: 90%;
-                            }
-                            &__postImage {
-                                margin-bottom: 40px;
                             }
                     }
             }

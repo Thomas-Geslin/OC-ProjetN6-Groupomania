@@ -1,6 +1,9 @@
 const express = require('express');
+require('dotenv').config();
 
 const utilisateurRoutes = require('./routes/utilisateurs');
+const postRoutes = require('./routes/posts');
+const path = require('path');
 
 const app = express();
 app.use(express.json());
@@ -14,6 +17,8 @@ app.use((req, res, next) => {
     next();
 });
 
+app.use('/images', express.static(path.join(__dirname, 'images')));
 app.use('/api/utilisateur', utilisateurRoutes);
+app.use('/api/post', postRoutes)
 
 module.exports = app;

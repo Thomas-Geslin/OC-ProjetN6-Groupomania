@@ -4,7 +4,7 @@ const mysql = require('mysql2');
 let db = mysql.createConnection({
     host     : 'localhost',
     user     : 'root',
-    password : 'password',
+    password : process.env.SQL_PASSWORD,
     database : 'groupomania'
 });
   

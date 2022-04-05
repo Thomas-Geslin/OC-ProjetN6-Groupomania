@@ -8,6 +8,7 @@ export default {
             userFirstName: '',
             userLastName: '',
             userPassword: '',
+            userPicture: '',
             loginEmail: '',
             loginPassword: ''
         }
@@ -19,12 +20,26 @@ export default {
         switchToLogin: function() {
             this.mode = 'login';
         },
-        submit() {
+        /* Permet d'avoir un aperçu de la photo de profil avant de l'envoyer */
+        previewPic() {
+            // Intègre une preview de l'image au DOM
+            const container = document.getElementById('pictureContainer')
+            const image = document.createElement('img');
+            container.appendChild(image);
+            image.setAttribute('src', URL.createObjectURL(event.target.files[0]));
+            image.classList.add('main__signup__body__picture__preview');
+            // Permet d'envoyer le nom du fichier au backend avec sendData()
+            let pictureName = document.getElementById('upload').value;
+            let filename = pictureName.split('\\');
+            this.userPicture = filename[2];
+        },
+        signup() {
             const userData = {
                 userEmail: this.userEmail,
                 userLastName: this.userLastName,
                 userFirstName: this.userFirstName,
-                userPassword: this.userPassword
+                userPassword: this.userPassword,
+                userPicture: this.userPicture
             };
             fetch('http://localhost:3000/api/utilisateur/signup', {
                 method: "POST",
@@ -34,7 +49,10 @@ export default {
             },
             body: JSON.stringify({userData})
             })
-            .then(function (res) { console.log(res) })
+            .then(function () { 
+                window.alert('Vous vous êtes bien inscrit !');
+                window.location.reload();
+            })
             .catch(function(err) { console.log(err) });
         },
         login() {
@@ -52,10 +70,26 @@ export default {
             })
             .then(function(res) {
                 if(res.ok) {
-                    window.location.href = "http://localhost:8080/social-network"
+                   return res.json();
                 }
             })
+            .then(function(value) {
+                let id = value.userId;
+                window.location.href = "http://localhost:8080/social-network?id=" + id;
+            })
             .catch((err) => console.log(err));
+        },
+        /* Permet de vérifier les champs du formulaire d'inscription avant de l'envoyer */
+        formVerification() {
+            const email = this.userEmail;
+            const firstName = this.userFirstName;
+            const lastName = this.userLastName;
+            const button = document.getElementById('signup');
+            if(/^[a-zA-ZÀ-ž]+([a-zA-ZÀ-ž\s-',])+$/.test(firstName, lastName) && /^\w+([.-]?\w+)*@\w+([.-]?\w+)*(\.\w{2,3})+$/.test(email)) {
+                button.removeAttribute('disabled');
+            } else {
+                button.setAttribute('disabled', true);
+            }
         }
     }
 }
@@ -63,7 +97,7 @@ export default {
 
 <template>
 	<header class="header">
-        <img class="header__img" src="../assets/icon-left-font-monochrome-black.png" alt="Logo de Groupomania"/>
+        <img class="header__img" src="../assets/icon-left-font-monochrome-black-reduct.png" alt="Logo de Groupomania"/>
         <a class="header__signup--login" href="#" @click="switchToSignUp" v-if="mode === 'login'">inscrivez-vous !</a>
         <a class="header__signup--signup" v-else>inscrivez-vous !</a>
     </header>
@@ -74,13 +108,13 @@ export default {
 
         <div class="main__login__body">
             <div>
-                <p class="main__login__body--text">Email</p>
-                <input type="text" name="id" class="main__login__body--input" v-model="loginEmail">
+                <p class="main__login__body__text">Email</p>
+                <input type="text" name="id" class="main__login__body__input" v-model="loginEmail">
             </div>
 
             <div>
-                <p class="main__login__body--text">Mot de passe</p>
-                <input type="text" name="password" class="main__login__body--input" v-model="loginPassword">
+                <p class="main__login__body__text">Mot de passe</p>
+                <input type="text" name="password" class="main__login__body__input" v-model="loginPassword">
             </div>
 
             <button class="main__login__button" v-if="mode === 'login'" @click="login">se connecter</button>
@@ -94,29 +128,32 @@ export default {
 
         <div class="main__signup__body">
             <div>
-                <p class="main__signup__body__plus--text">Email</p>
-                <input type="text" name="id" class="main__signup__body--input" v-model="userEmail">
+                <p class="main__signup__body__text">Email</p>
+                <input type="text" name="id" class="main__signup__body__input" v-model="userEmail" @change="formVerification">
             </div>
 
-            <div class="main__signup__body__plus">
-                <div>
-                    <p class="main__signup__body__plus--text">Nom</p>
-                    <input class="main__signup__body__plus--name" type="text" v-model="userLastName" v-if="mode === 'signup'">
-                </div>
+            <div>
+                <p class="main__signup__body__text">Nom</p>
+                <input class="main__signup__body__name" type="text" v-model="userLastName" v-if="mode === 'signup'" @change="formVerification">
+            </div>
 
-                <div>
-                    <p class="main__signup__body__plus--text">Prénom</p>
-                    <input class="main__signup__body__plus--name" type="text" v-model="userFirstName" v-if="mode === 'signup'">
-                </div>
+            <div>
+                <p class="main__signup__body__text">Prénom</p>
+                <input class="main__signup__body__name" type="text" v-model="userFirstName" v-if="mode === 'signup'" @change="formVerification">
             </div>
    
             <div>
-                <p class="main__signup__body__plus--text">Mot de passe</p>
-                <input type="password" name="password" class="main__signup__body--input" v-model="userPassword">
+                <p class="main__signup__body__text">Mot de passe</p>
+                <input type="password" name="password" class="main__signup__body__input" v-model="userPassword">
+            </div>
+
+            <div class="main__signup__body__picture" id="pictureContainer">
+                <input type="file" accept="image/*" name="profile_pic" @change="previewPic" class="main__signup__body__picture__upload" id="upload">
+                <!-- <img src="#" id="image"  class="main__signup__body__picture__preview"> -->
             </div>
         </div>
 
-        <button class="main__signup__button" v-if="mode === 'signup'" @click="submit">s'inscrire</button>
+        <button class="main__signup__button" id="signup" v-if="mode === 'signup'" @click="signup" disabled>s'inscrire</button>
     </div>
 </template>
 
@@ -128,8 +165,7 @@ export default {
 	.header {
         &__img {
             width: 700px;
-            margin-top: -300px;
-            margin-bottom: -220px;
+            text-align: center;
         }
         &__signup {
             &--login {
@@ -138,12 +174,19 @@ export default {
                 color: black;
                 font-weight: bold;
                 position: absolute;
-                top: 90px;
-                right: 120px;
+                right: 50px;
+                top: 80px;
             } 
             &--signup {
                 display: none;
             }  
+        }
+    }
+    @media (max-width: 425px) {
+        .header {
+            &__img {
+                width: 400px;
+            }
         }
     }
 
@@ -158,23 +201,21 @@ export default {
             width: 100px;
             margin-top: 25px;
         }
-        &__body--text {
+        &__body__text {
             font-size: 22px;
             text-align: left;
             margin-left: 8%;
             margin-bottom: 10px;
         }
-        &__body--name {
+        &__body__name {
             width: 35%;
             background-color: #C7D0D8;
             border: 6px solid #9AA7B2;
             border-radius: 15px;
             height: 50px;
             font-size: 22px;
-            margin-right: 4%;
-            margin-left: 4%;
         }
-        &__body--input {
+        &__body__input {
             width: 80%;
             background-color: #C7D0D8;
             border: 6px solid #9AA7B2;
@@ -199,6 +240,9 @@ export default {
                 transition: .5s;
             }
         }
+    }
+    @media (max-width: 425px) {
+
     }
 
     /* Style appliqués à la page d'inscription */
@@ -230,33 +274,56 @@ export default {
             flex-wrap: wrap;
             width: 45%;
             text-align: left;
-                &__plus {
+            margin-top: -50px;
+            position: relative;
+                &__text {
+                    font-size: 22px;
+                    text-align: left;
+                    margin: 0;
+                    margin-bottom: 10px;
+                }
+                &__name {
+                    background-color: #C7D0D8;
+                    border: 6px solid #9AA7B2;
+                    border-radius: 15px;
+                    height: 50px;
+                    font-size: 22px;
+                    margin-bottom: 30px;
+                }
+                &__input {
+                    background-color: #C7D0D8;
+                    border: 6px solid #9AA7B2;
+                    border-radius: 15px;
+                    height: 50px;
+                    font-size: 22px;
+                    margin-bottom: 30px;
+                    width: 98%;
+                }
+                &__picture {
                     display: flex;
-                        &--text {
-                            font-size: 22px;
-                            text-align: left;
-                            margin: 0;
-                            margin-bottom: 10px;
-                        }
-                        &--name {
+                    flex-direction: column-reverse;
+                    align-items: center;
+                    border-radius: 15px;
+                        &__upload {
                             background-color: #C7D0D8;
                             border: 6px solid #9AA7B2;
                             border-radius: 15px;
-                            height: 50px;
-                            font-size: 22px;
-                            margin-bottom: 50px;
+                            width: 200px;
+                            height: 200px;
+                            position: absolute;
+                            top: 160px;
+                            right: 0;
                         }
-                    }
-                    &--input {
-                        background-color: #C7D0D8;
-                        border: 6px solid #9AA7B2;
-                        border-radius: 15px;
-                        height: 50px;
-                        font-size: 22px;
-                        margin-bottom: 50px;
-                        width: 98%;
-                    }
+                        &__preview {
+                            width: 200px;
+                            height: 200px;
+                            border-radius: 10px;
+                            position: absolute;
+                            top: 166px;
+                            right: 6px;
+                        }                        
                 }
+        }
                 &__button {
                     background-color: #15AAD1;
                     width: 310px;

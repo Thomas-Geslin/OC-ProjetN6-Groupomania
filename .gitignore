@@ -2,6 +2,7 @@
 node_modules
 /dist
 pb.txt
+images
 
 # local env files
 .env.local

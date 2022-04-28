@@ -3,17 +3,24 @@ export default {
     name: 'SocialNetwork',
     data: function() {
         return {
-            postTxt: '',
+            admin: false,
             id: '',
-            postPicture: ''
+            postTxt: '',
+            posts: null
         }
     },
     methods:{
+        /* Fonction permettant la déconnexion de la session */
+        disconnect() {
+            localStorage.clear();
+            location.href = "";
+        },
         /* Fonction envoyant les infos d'un nouveau post au backend */
         sendPost() {
             // Ajoute un message d'alerte pour que l'utilisateur n'envoit pas de post par erreur
             let confirm = window.confirm('Voulez vous poster ceci ?')
             if(confirm) {
+                const token = localStorage.getItem('token');
                 // Récupère le texte entré dans le champ dédié
                 const userId = this.id;
                 const postTxt = this.postTxt;
@@ -23,11 +30,14 @@ export default {
                     method: "POST",
                     headers: {
                         'Accept': 'application/json',
-                        'Content-Type': 'application/json'
+                        'Content-Type': 'application/json',
+                        'Authorization': 'Bearer ' + token
                 },
                 body: JSON.stringify({userId, postTxt, postPic})
                 })
                 .then(function (res) { console.log(res) })
+                // On recharge la page une fois que le post as été ajouté 
+                .then( location.reload() )
                 .catch(function(err) { console.log(err) });
             }
         },
@@ -36,76 +46,85 @@ export default {
             let pictureName = document.getElementById('file').value;
             let filename = pictureName.split('\\');
             this.postPicture = filename[2];
-        }      
+            console.log(this.postPicture)
+        },
+        /* Permet de rechercher des posts en particulier suivant le contenu de leur texte */
+        searchPost() {
+            if(this.filter.length > 3) {
+                fetch('http://localhost:3000/api/post/' + this.filter)
+                    .then(res => res.json())
+                    .then(response => this.posts = response)
+                    .catch(err => console.log(err));
+            } else {
+                fetch('http://localhost:3000/api/post') 
+                    .then(res => res.json())
+                    .then(value => this.posts = value)
+                    .catch(err => console.log(err));
+            }
+        },
+        /* Affiche le menu pour modifier le post quand on clique sur les 3 petits points */
+        postMenuAppear(id) {
+            const menu = document.getElementById(id);
+            const allMenu = document.getElementsByClassName('postMenu');
+
+            for(let post of allMenu) {
+                post.style.display = 'none'
+            }
+
+            if(menu.style.display === 'none') {
+                menu.style.display = 'block';
+            } else {
+                menu.style.display = 'none';
+            }
+        },
+        /* Permet de supprimer un post */
+        deletePost(idPost) {
+            const token = localStorage.getItem('token');
+            const userId = this.id
+            // Affiche une alerte pour être sûr que l'utilisateur ne supprime pas son post par erreur
+            let confirm = window.confirm('Êtes-vous sûr de vouloir supprimer ce post ?')
+            if(confirm) {
+                const postId = idPost;
+                fetch('http://localhost:3000/api/post/delete', {
+                    method: "DELETE",
+                    headers: {
+                        'Accept': 'application/json',
+                        'Content-Type': 'application/json',
+                        'Authorization': 'Bearer ' + token
+                },
+                body: JSON.stringify({postId, userId})
+                })
+                .then( window.alert("Votre post as bien été supprimé !") )
+                // On recharge la page une fois que le post as été supprimé
+                .then( location.reload() )
+                .catch(function(err) { 
+                    console.log(err) 
+                });
+            }
+        }
     },
+    /* 2 blocs permettant d'empêcher la connexion ou la modification d'une page 
+       si jamais l'utilisateur ne possède pas de token d'authentification */
     beforeCreate() {
-        /* Fonction récupérant les posts présent dans la BDD au chargement de la page */
-        fetch('http://localhost:3000/api/post') 
-            .then(function (res) {
-                if (res.ok) {
-                    return res.json();
-                }
-            })
-            // Affiche chacun des posts dans le DOM
-            .then(function (value) {
-                for(let post of value) {
-                    postIntegration(post.postTxt, post.postImg, post.postUserPicture, post.postDate, post.postUserName);
-                }
-            })
-            .catch(function(err) {
-            console.log(err)
-            });
-
-        /* Fonction créant une carte pour chaque post */
-        function postIntegration (text, postImage, userImage, date, name) {
-            const postLocation = document.getElementById('mainPost');
-            // Crée la div du post
-            const postContainer = document.createElement('div');
-            postContainer.classList.add('main__post__container');
-            // Crée la div des infos du post
-            const postInfo = document.createElement('div');
-            postInfo.classList.add('main__post__container__info')
-            postContainer.appendChild(postInfo);
-            // Ajoute l'image de l'utilisateur qui as crée le post
-            const picLocation = document.createElement('img');
-            picLocation.classList.add('main__post__container__img');
-            picLocation.setAttribute('src', userImage);
-            postInfo.appendChild(picLocation);
-            // Crée la div des infos user 
-            const postUser = document.createElement('div');
-            postUser.classList.add('main__post__container__info__user');
-            postInfo.appendChild(postUser);
-            /* // Crée l'icone pour gérer le post
-            const postSettings = document.createElement('a');
-            const icon = document.createElement('img');
-
-            postSettings.appendChild(icon);
-            postInfo.appendChild(postSettings); */
-            // Ajoute la date du post
-            const dateLocation = document.createElement('p');
-            let dateDay = date.split('T');
-            dateLocation.innerText = dateDay[0];
-            postUser.appendChild(dateLocation);
-            // Ajoute le nom de l'utilisateur 
-            const nameLocation = document.createElement('p');
-            nameLocation.classList.add('main__post__container__info__user__name');
-            nameLocation.innerText = name;
-            postUser.appendChild(nameLocation);
-            // Ajoute le texte du post
-            const postTextPart = document.createElement('p');
-            postTextPart.classList.add('main__post__container__text')
-            postTextPart.innerText = text;
-            postContainer.appendChild(postTextPart);
-            // Ajoute l'image du post
-            const imgLocation = document.createElement('img');
-            imgLocation.classList.add('main__post__container__postImage')
-            imgLocation.setAttribute('src', postImage);
-            postContainer.appendChild(imgLocation);
-            // Intègre le post au DOM
-            postLocation.appendChild(postContainer);
+        const token = localStorage.getItem('token');
+        if(!token) {
+            location.href = "http://localhost:8080"
+        }
+    },
+    beforeUpdate() {
+        const token = localStorage.getItem('token');
+        if(!token) {
+            location.href = "http://localhost:8080"
         }
     },
     created() {
+        /* Fonction récupérant les posts présent dans la BDD au chargement de la page */
+        fetch('http://localhost:3000/api/post') 
+            .then(res => res.json())
+            // Affiche chacun des posts dans le DOM
+            .then(value => this.posts = value)
+            .catch(err => console.log(err));
+        
         /* Requête récupérant la photo de profil de l'utilsateur et l'intègre au DOM */
         let id = this.$route.query.id;
         this.id = id;
@@ -140,48 +159,76 @@ export default {
             const gear = document.getElementById('gear');
             gear.setAttribute('href', "http://localhost:8080/social-network/settings?id=" + id)
         }
+
+        /* Si jamais l'id correspond à celui de l'admin lui accorde les droits de supprimer tous les posts */
+        if(this.id == 70) this.admin = true;
     }
 }
 </script>
 
+
+
+
+
 <template>
+    <!-- =========== HEADER ========== -->
     <div class="header__social">
         <img src="../assets/icon.png" alt="logo de Groupomania" class="header__social__img">
-
+   
         <div class="header__social__form">
-            <input name="search" type="text" placeholder="Recherchez des posts ou des collègues..." class="header__social__form__input">
+            <input name="search" type="text" @keyup="searchPost" v-model="filter" placeholder="Recherchez des posts ou des collègues..." class="header__social__form__input">
             <font-awesome-icon :icon="['fas', 'search']" class="header__social__form__search"/>
         </div>
 
         <div class="header__social__icon">
             <a id="gear"><font-awesome-icon :icon="['fas', 'gear']" class="header__social__icon__gear"/></a>
-            <a href="http://localhost:8080/"><font-awesome-icon :icon="['fas', 'power-off']" class="header__social__icon__disconnect"/></a>
+            <a @click="disconnect"><font-awesome-icon :icon="['fas', 'power-off']" class="header__social__icon__disconnect"/></a>
         </div>
     </div>
 
+    <!-- =========== PARTIE PUBLICATIONS ========== -->
     <div class="main">
         <div class="main__post" id="mainPost">
             <div class="main__post__new">
                 <div class="main__post__new__picture" id="profilePicture"></div>
-                <input type="text" name="newPost" class="main__post__new__input" placeholder="Ajoutez un nouveau post..." v-model="postTxt">
-                <button class="main__post__new__button" @click="sendPost" onclick="window.location.reload();">Publier votre post</button>
-                <label for="file" class="main__post__new__label"><font-awesome-icon :icon="['fas', 'link']" /></label>
-                <input type="file" accept="images/*" id="file" class="main__post__new__file" @change="picturePost" multiple>
+                <input type="text" name="newPost" class="main__post__new__input" placeholder="Ajoutez un nouveau post..." v-model="postTxt">                
+                <form method="POST" action="http://localhost:3000/api/post/create" enctype="multipart/form-data" target="target">
+                    <label for="file" class="main__post__new__label"><font-awesome-icon :icon="['fas', 'link']"/></label>
+                    <input type="file" accept="images/*" name="image" id="file" @change="picturePost" multiple>
+                    <input type="submit" value="Publiez votre post" class="main__post__new__button" @click="sendPost">
+                </form>
+                <!-- Permet d'éviter que le form nous redirige vers une autre page quand il est submit -->
+                <iframe name="target" style="display: none;"></iframe>
             </div> 
             
-            <!-- <div class="main__post__container">
+            <!-- === SQUELETTE POST === -->
+            <div v-for="post in posts" :key="post" class="main__post__container">
                 <div class="main__post__container__info">
-                    <img>
+                    <!-- Photo de profil -->
+                    <img :src='post.postUserPicture' class="main__post__container__img">
+                    <!-- Infos du post -->
                     <div class="main__post__container__info__user">
-                        <p class="main__post__container__info__user__name></p> : date
-                        <p></p> : nom
+                        <p>{{ post.postDate.split('T')[0] }}</p>
+                        <p id="postId">{{ post.postId }}</p>
+                        <p class="main__post__container__info__user__name">{{ post.postUserName }}</p>
                     </div>
-                    <a id="dot"><font-awesome-icon :icon="['fas', 'ellipsis']" class="main__post__container__info__dot"/></a>
-                <div>
-                <p class="main__post__container__text"></p> : texte du post
-            </div> -->
+                    <!-- Menu de modification -->
+                    <font-awesome-icon :icon="['fas', 'ellipsis']" @click="postMenuAppear(post.postId)" v-if="this.id == post.postUserId" class="main__post__container__info__dot"/>
+                    <font-awesome-icon :icon="['fas', 'ellipsis']" @click="postMenuAppear(post.postId)" v-if="this.admin == true" class="main__post__container__info__dot"/>
+                    <ul class="main__post__container__info__dot--menu postMenu" v-bind:id="post.postId">
+                        <div class="main__post__container__info__dot--arrow"></div>
+                        <li>Modifier</li>
+                        <li @click="deletePost(post.postId)">Supprimer</li>
+                    </ul>
+                </div>
+                <!-- Texte du post -->
+                <p class="main__post__container__text">{{ post.postTxt }}</p>
+                <!-- Image du post -->
+                <img :src='post.postImg' class="main__post__container__postImage" v-if="post.postImg">
+            </div>
         </div>
 
+        <!-- =========== PARTIE AMIS ========== -->
         <div class="main__friends">
             <h1 class="main__friends__title">AMIS</h1>
 
@@ -199,6 +246,10 @@ export default {
         </div>
     </div>
 </template>
+
+
+
+
 
 <style lang="scss">
     body {
@@ -241,10 +292,19 @@ export default {
                         color: black;
                         font-size: 30px;
                         margin-right: 60px;
+                            &:hover {
+                                cursor: pointer;
+                            }
+                    }
+                    #gear {
+                        cursor: default;
                     }
                     &__disconnect {
                         color: red;
                         font-size: 30px;
+                            &:hover {
+                                cursor: pointer;
+                            }
                     }
             }
     }
@@ -295,7 +355,8 @@ export default {
                                 height: 30px;
                                 padding: 15px 15px 30px 15px;
                                 position: absolute;
-                                right: 40px;
+                                right: 50px;
+                                bottom: 42px;
                                 padding-right: 40px;
                                     &:hover {
                                         box-shadow: 2px 7px 10px 0px #8a8a8a;
@@ -308,9 +369,10 @@ export default {
                                 font-weight: bold;
                                 z-index: 1000;
                                 position: absolute;
-                                right: 52px;
+                                right: 57px;
+                                bottom: 54px;
                             }
-                            &__file {
+                            input[type="file"] {
                                 display: none;
                             }
                     }
@@ -319,6 +381,7 @@ export default {
                         border-radius: 15px;
                         height: auto;
                         margin-bottom: 50px;
+                        position: relative;
                             &__img {
                                 width: 65px;
                                 height: 65px;
@@ -329,13 +392,57 @@ export default {
                             }
                             &__info {
                                 display: flex;
+                                    #postId {
+                                        display: none;
+                                    }
                                     &__user{
                                         display: flex;
                                         flex-direction: column-reverse;
                                         line-height: 0;
                                         margin-left: 15px;
+                                        text-align: left;
                                             &__name {
                                                 font-weight: bold;
+                                            }
+                                    }
+                                    &__dot {
+                                        font-size: 30px;
+                                        position: absolute;
+                                        right: 40px;
+                                        top: 25px;
+                                            &:hover {
+                                                cursor: pointer;
+                                            }
+                                            &--menu {
+                                                display: none;
+                                                list-style: none;
+                                                background-color: #bdbdbd;
+                                                border-radius: 10px;
+                                                padding: 0;
+                                                margin: 0;
+                                                height: 58px;
+                                                position: absolute;
+                                                top: 60px;
+                                                right: 8px;
+                                                    & li {
+                                                        padding: 5px 10px;
+                                                        border-radius: 10px;
+                                                            &:hover {
+                                                                cursor: pointer;
+                                                                background-color: #a1a1a1;
+                                                                transition: .5s;
+                                                            }
+                                                    }
+                                            }
+                                            &--arrow {
+                                                width: 0;
+                                                height: 0;
+                                                border-style: solid;
+                                                border-width: 0 7.5px 10px 7.5px;
+                                                border-color: transparent transparent #bdbdbd transparent;
+                                                position: absolute;
+                                                right: 38px;
+                                                top: -10px;
                                             }
                                     }
                             }
@@ -347,7 +454,13 @@ export default {
                             }
                             &__postImage {
                                 margin-bottom: 40px;
+                                border-radius: 15px;
+                                width: auto;
+                                outline: 1px solid black;
                             }
+                    }
+                    &__ellipsis {
+                        width: 2%;
                     }
             }
             &__friends {
@@ -355,6 +468,7 @@ export default {
                 border-radius: 15px;
                 width: 30%;
                 max-height: 700px;
+                min-width: 390px;
                     &__title {
                         color: black;
                         margin-top: 30px;
@@ -388,6 +502,121 @@ export default {
     .test {
         width: 50px;
         height: 50px;
+    }
+
+    @media (min-width: 1121px) and (max-width: 1500px) {
+        .main__post {
+            &__new {
+                margin-bottom: 70px;
+                    &__picture {
+                        width: 60px;
+                        height: 60px;
+                            & img {
+                                width: 60px;
+                            }
+                    }
+                    &__input {
+                        height: 60px;
+                        font-size: 22px;
+                        padding-left: 20px;
+                    }
+                    &__label {
+                        font-size: 14px;
+                        right: 60px;
+                        bottom: 38px;
+                    }
+                    &__button {
+                        font-size: 13px;
+                        right: 50px;
+                        bottom: 25px;
+                    }
+            }
+        }
+    }
+    @media (max-width: 1250px) {
+        .header__social {
+            &__icon {
+                margin-right: 50px;
+                min-width: 120px ; 
+            }
+        }
+    }
+    @media (max-width: 1120px) {
+        .main {
+            &__friends {
+                display: none;
+            }
+            &__post {
+                width: 80%;
+                    &__new {
+                        margin-bottom: 80px;
+                    &__picture {
+                        width: 80px;
+                        height: 80px;
+                            & img {
+                                width: 80px;
+                            }
+                    }
+                    &__input {
+                        height: 80px;
+                        font-size: 22px;
+                        padding-left: 20px;
+                    }
+                    &__label {
+                        font-size: 14px;
+                        right: 57px;
+                        bottom: 48px;
+                    }
+                    &__button {
+                        font-size: 13px;
+                        right: 45px;
+                        bottom: 35px;
+                    }
+                }
+            }
+        }
+    }
+    @media (max-width: 850px) {
+        .header__social {
+            &__form {
+                &__input {
+                    display: none;
+                }
+                &__search {
+                    display: none;
+                }
+            }
+        }
+    }
+    @media (max-width:768px) {
+        .main__post {
+            &__new {
+                margin-bottom: 50px;
+                    &__picture {
+                        width: 50px;
+                        height: 50px;
+                            & img {
+                                width: 50px;
+                            }
+                    }
+                    &__input {
+                        height: 50px;
+                        font-size: 16px;
+                        padding-left: 15px;
+                    }
+                    &__label {
+                        font-size: 12px;
+                        right: 42px;
+                        bottom: 33px;
+                    }
+                    &__button {
+                        font-size: 11px;
+                        right: 35px;
+                        bottom: 27px;
+                        padding: 10px 30px 20px 10px;
+                    }
+            }
+        }
     }
 </style>
  

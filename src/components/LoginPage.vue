@@ -8,7 +8,7 @@ export default {
             userFirstName: '',
             userLastName: '',
             userPassword: '',
-            userPicture: '',
+            userPicture: 'pdp_default.png',
             loginEmail: '',
             loginPassword: ''
         }
@@ -32,6 +32,7 @@ export default {
             let pictureName = document.getElementById('upload').value;
             let filename = pictureName.split('\\');
             this.userPicture = filename[2];
+            console.log(this.userPicture)
         },
         signup() {
             const userData = {
@@ -74,18 +75,45 @@ export default {
                 }
             })
             .then(function(value) {
+                localStorage.setItem('token', value.token);
                 let id = value.userId;
                 window.location.href = "http://localhost:8080/social-network?id=" + id;
             })
             .catch((err) => console.log(err));
         },
+        mailVerification () {
+            const email = this.userEmail;
+            const errorBloc = document.getElementById('emailErr');
+            if (/^\w+([.-]?\w+)*@\w+([.-]?\w+)*(\.\w{2,3})+$/.test(email)) {
+                errorBloc.innerText = '';
+            } else {
+                errorBloc.innerText = 'Veuillez rentrer une adresse mail valide !';
+            }
+        },
+        firstNameVerification () {
+            const firstName = this.userFirstName;
+            const errorBloc = document.getElementById('firstNameErr');
+            if (/^[a-zA-ZÀ-ž]+([a-zA-ZÀ-ž\s-',])+$/.test(firstName)) {
+                errorBloc.innerText = '';
+            } else {
+                errorBloc.innerText = 'Veuillez rentrer uniquement des lettres !';
+            }
+        },
+        lastNameVerification () {
+            const lastName = this.userLastName;
+            const errorBloc = document.getElementById('lastNameErr');
+            if (/^[a-zA-ZÀ-ž]+([a-zA-ZÀ-ž\s-',])+$/.test(lastName)) {
+                errorBloc.innerText = '';
+            } else {
+                errorBloc.innerText = 'Veuillez rentrer uniquement des lettres !';
+            }
+        },
         /* Permet de vérifier les champs du formulaire d'inscription avant de l'envoyer */
         formVerification() {
-            const email = this.userEmail;
             const firstName = this.userFirstName;
             const lastName = this.userLastName;
             const button = document.getElementById('signup');
-            if(/^[a-zA-ZÀ-ž]+([a-zA-ZÀ-ž\s-',])+$/.test(firstName, lastName) && /^\w+([.-]?\w+)*@\w+([.-]?\w+)*(\.\w{2,3})+$/.test(email)) {
+            if(/^[a-zA-ZÀ-ž]+([a-zA-ZÀ-ž\s-',])+$/.test(firstName, lastName)) {
                 button.removeAttribute('disabled');
             } else {
                 button.setAttribute('disabled', true);
@@ -95,14 +123,20 @@ export default {
 }
 </script>
 
+
+
+
+
+
 <template>
+    <!-- =========== HEADER ========== -->
 	<header class="header">
         <img class="header__img" src="../assets/icon-left-font-monochrome-black-reduct.png" alt="Logo de Groupomania"/>
         <a class="header__signup--login" href="#" @click="switchToSignUp" v-if="mode === 'login'">inscrivez-vous !</a>
         <a class="header__signup--signup" v-else>inscrivez-vous !</a>
     </header>
 
-    <!-- Bloc Main qui sera utilisé pour la page de connexion -->
+    <!-- =========== MAIN LOGIN ========== -->
     <div class="main__login" v-if="mode === 'login'">
         <img class="main__login__img" src="../assets/icon.png" alt="logo groupomania"/>
 
@@ -114,14 +148,14 @@ export default {
 
             <div>
                 <p class="main__login__body__text">Mot de passe</p>
-                <input type="text" name="password" class="main__login__body__input" v-model="loginPassword">
+                <input type="password" name="password" class="main__login__body__input" v-model="loginPassword">
             </div>
 
             <button class="main__login__button" v-if="mode === 'login'" @click="login">se connecter</button>
         </div>
     </div>
 
-    <!-- Bloc Main qui sera utilisé pour la page d'inscription -->
+    <!-- =========== MAIN SIGNUP ========== -->
     <div class="main__signup" v-else>
         <img class="main__signup__img" src="../assets/icon.png" alt="logo groupomania"/>
         <p class="main__signup__login">Vous êtes déjà inscrit ? : <span><a class="main__signup__login--switch" href="#" @click="switchToLogin">Se connecter</a></span></p>
@@ -129,42 +163,55 @@ export default {
         <div class="main__signup__body">
             <div>
                 <p class="main__signup__body__text">Email</p>
-                <input type="text" name="id" class="main__signup__body__input" v-model="userEmail" @change="formVerification">
+                <input type="text" name="id" class="main__signup__body__input" v-model="userEmail" @change="mailVerification">
+                <p id="emailErr" class="main__signup__body__error"></p>
             </div>
+            
+            <div class="main__signup__body__adapt">
+                <div>
+                    <p class="main__signup__body__text">Nom</p>
+                    <input class="main__signup__body__name" type="text" v-model="userLastName" v-if="mode === 'signup'" @change="lastNameVerification">
+                    <p id="lastNameErr" class="main__signup__body__error"></p>
+                </div>
 
-            <div>
-                <p class="main__signup__body__text">Nom</p>
-                <input class="main__signup__body__name" type="text" v-model="userLastName" v-if="mode === 'signup'" @change="formVerification">
-            </div>
-
-            <div>
-                <p class="main__signup__body__text">Prénom</p>
-                <input class="main__signup__body__name" type="text" v-model="userFirstName" v-if="mode === 'signup'" @change="formVerification">
+                <div>
+                    <p class="main__signup__body__text">Prénom</p>
+                    <input class="main__signup__body__name" type="text" v-model="userFirstName" v-if="mode === 'signup'" @change="firstNameVerification">
+                    <p id="firstNameErr" class="main__signup__body__error"></p>
+                </div>
             </div>
    
-            <div>
+            <div class="main__signup__body__mdp">
                 <p class="main__signup__body__text">Mot de passe</p>
-                <input type="password" name="password" class="main__signup__body__input" v-model="userPassword">
+                <input type="password" name="password" class="main__signup__body__input" v-model="userPassword" @change="formVerification">
+                <p></p>
             </div>
 
-            <div class="main__signup__body__picture" id="pictureContainer">
-                <input type="file" accept="image/*" name="profile_pic" @change="previewPic" class="main__signup__body__picture__upload" id="upload">
-                <!-- <img src="#" id="image"  class="main__signup__body__picture__preview"> -->
-            </div>
+            <form method="POST" action="http://localhost:3000/api/utilisateur/signup" enctype="multipart/form-data" target="target" id="pictureContainer">
+                <label for="upload" class="main__signup__body__picture__label"><font-awesome-icon :icon="['fas', 'user']" class="main__signup__body__picture__label__icon"/><br>Choississez votre photo de profil</label>
+                <input type="file" accept="image/*" name="image" @change="previewPic" class="main__signup__body__picture__upload" id="upload">
+                <input type="submit" id="signup" value="S'INSCRIRE" v-if="mode === 'signup'" @click="signup" class="main__signup__button">
+            </form>
+            <!-- Permet d'éviter que le form nous redirige vers une autre page quand il est submit -->
+            <iframe name="target" style="display: none;"></iframe>
         </div>
-
-        <button class="main__signup__button" id="signup" v-if="mode === 'signup'" @click="signup" disabled>s'inscrire</button>
     </div>
 </template>
+
+
+
+
 
 <style lang="scss">
     body {
         background-color: #15AAD1;
+        margin: 0;
+        padding: 0;
     }
 
 	.header {
         &__img {
-            width: 700px;
+            width: 50%;
             text-align: center;
         }
         &__signup {
@@ -175,18 +222,65 @@ export default {
                 font-weight: bold;
                 position: absolute;
                 right: 50px;
-                top: 80px;
+                top: 105px;
             } 
             &--signup {
                 display: none;
             }  
         }
     }
-    @media (max-width: 425px) {
+    @media (max-width: 1230px) {
         .header {
-            &__img {
-                width: 400px;
-            }
+            display: flex;
+            flex-direction: column;
+                &__img{
+                    width: 550px;
+                    margin: auto;
+                }
+                &__signup--login {
+                    position: static;
+                    width: 380px;
+                    margin: auto;
+                    margin-top: 30px;
+                    margin-bottom: 50px;
+                }
+        }
+        .main__login {
+                &__button {
+                    margin-bottom: 150px;
+                    min-width: 245px;
+                }
+        }
+    }
+    @media (max-width: 600px) {
+        .header {
+            display: flex;
+            flex-direction: column;
+                &__img{
+                    width: 400px;
+                    margin: auto;
+                    margin-top: 30px;
+                }
+                &__signup--login {
+                    position: static;
+                    width: 50%;
+                    margin: auto;
+                    margin-top: 30px;
+                    margin-bottom: 50px;
+                }
+        }
+        .main__login {
+            max-width: 90%;
+        }
+    }
+    @media (max-width: 420px) {
+        .header {
+            display: flex;
+            flex-direction: column;
+                &__img {
+                    width: 300px;
+
+                }
         }
     }
 
@@ -201,27 +295,29 @@ export default {
             width: 100px;
             margin-top: 25px;
         }
-        &__body__text {
-            font-size: 22px;
-            text-align: left;
-            margin-left: 8%;
-            margin-bottom: 10px;
-        }
-        &__body__name {
-            width: 35%;
-            background-color: #C7D0D8;
-            border: 6px solid #9AA7B2;
-            border-radius: 15px;
-            height: 50px;
-            font-size: 22px;
-        }
-        &__body__input {
-            width: 80%;
-            background-color: #C7D0D8;
-            border: 6px solid #9AA7B2;
-            border-radius: 15px;
-            height: 50px;
-            font-size: 22px;
+        &__body {
+            &__text {
+                font-size: 22px;
+                text-align: left;
+                margin-left: 8%;
+                margin-bottom: 10px;
+            }
+            &__name {
+                width: 35%;
+                background-color: #C7D0D8;
+                border: 6px solid #9AA7B2;
+                border-radius: 15px;
+                height: 50px;
+                font-size: 22px;
+            }
+            &__input {
+                width: 80%;
+                background-color: #C7D0D8;
+                border: 6px solid #9AA7B2;
+                border-radius: 15px;
+                height: 50px;
+                font-size: 22px;
+            }
         }
         &__button {
             background-color: #15AAD1;
@@ -241,7 +337,7 @@ export default {
             }
         }
     }
-    @media (max-width: 425px) {
+    @media (max-width: 1375px) {
 
     }
 
@@ -253,95 +349,276 @@ export default {
         margin: auto;
         border-radius: 35px;
         position: relative;
-        &__img {
-            margin: 0;
-            width: 100px;
-            padding: 30px;
-            float: left;
-        }
-        &__login {
-            font-size: 24px;
-            padding-top: 60px;
-            padding-right: 30px;
-            text-align: right;
-                &--switch {
-                    color: blue;
-                }
-        }
-        &__body {
-            display: flex;
-            flex-direction: column;
-            flex-wrap: wrap;
-            width: 45%;
-            text-align: left;
-            margin-top: -50px;
-            position: relative;
-                &__text {
-                    font-size: 22px;
-                    text-align: left;
-                    margin: 0;
-                    margin-bottom: 10px;
-                }
-                &__name {
-                    background-color: #C7D0D8;
-                    border: 6px solid #9AA7B2;
-                    border-radius: 15px;
-                    height: 50px;
-                    font-size: 22px;
-                    margin-bottom: 30px;
-                }
-                &__input {
-                    background-color: #C7D0D8;
-                    border: 6px solid #9AA7B2;
-                    border-radius: 15px;
-                    height: 50px;
-                    font-size: 22px;
-                    margin-bottom: 30px;
-                    width: 98%;
-                }
-                &__picture {
-                    display: flex;
-                    flex-direction: column-reverse;
-                    align-items: center;
-                    border-radius: 15px;
-                        &__upload {
-                            background-color: #C7D0D8;
-                            border: 6px solid #9AA7B2;
-                            border-radius: 15px;
-                            width: 200px;
-                            height: 200px;
-                            position: absolute;
-                            top: 160px;
-                            right: 0;
-                        }
-                        &__preview {
-                            width: 200px;
-                            height: 200px;
-                            border-radius: 10px;
-                            position: absolute;
-                            top: 166px;
-                            right: 6px;
-                        }                        
-                }
-        }
-                &__button {
-                    background-color: #15AAD1;
-                    width: 310px;
-                    height: 100px;
-                    border: none;
-                    border-radius: 50px;
-                    font-size: 30px;
-                    font-weight: bold;
-                    text-transform: uppercase;
-                    position: absolute;
-                    right: 8%;
-                    top: 45%;
+            &__img {
+                margin: 0;
+                width: 100px;
+                padding: 30px;
+                float: left;
+            }
+            &__login {
+                font-size: 24px;
+                padding-top: 40px;
+                padding-right: 30px;
+                text-align: right;
+                    &--switch {
+                        color: blue;
+                    }
+            }
+            &__body {
+                display: flex;
+                flex-direction: column;
+                flex-wrap: wrap;
+                width: 45%;
+                text-align: left;
+                margin-top: -50px;
+                position: relative;
+                    &__text {
+                        font-size: 22px;
+                        text-align: left;
+                        margin: 0;
+                        margin-bottom: 10px;
+                    }
+                    &__name {
+                        background-color: #C7D0D8;
+                        border: 6px solid #9AA7B2;
+                        border-radius: 15px;
+                        height: 50px;
+                        font-size: 22px;
+                        margin-bottom: 30px;
+                    }
+                    &__error {
+                        color: red;
+                        position: relative;
+                        top: -25px;
+                        margin: 0;
+                    }
+                    &__input {
+                        background-color: #C7D0D8;
+                        border: 6px solid #9AA7B2;
+                        border-radius: 15px;
+                        height: 50px;
+                        font-size: 22px;
+                        margin-bottom: 30px;
+                        width: 98%;
+                    }
+                    &__picture {
+                        border-radius: 15px;
+                            &__label {
+                                text-align: center;
+                                background-color: #C7D0D8;
+                                border: 6px solid #9AA7B2;
+                                border-radius: 15px;
+                                width: 170px;
+                                height: 170px;
+                                position: absolute;
+                                top: 175px;
+                                right: 15px;
+                                    &__icon {
+                                        font-size: 25px;
+                                        padding-top: 40px;
+                                        padding-bottom: 10px;
+                                    }
+                            }
+                            &__preview {
+                                background-color: #C7D0D8;
+                                border: 6px solid #9AA7B2;
+                                border-radius: 15px;
+                                width: 170px;
+                                height: 170px;
+                                border-radius: 10px;
+                                position: absolute;
+                                top: 175px;
+                                right: 15px;
+                            } 
+                            input[type="file"] {
+                                display: none;
+                            }                       
+                    }
+            }
+            &__button {
+                background-color: #15AAD1;
+                width: 310px;
+                height: 100px;
+                border: none;
+                border-radius: 50px;
+                font-size: 30px;
+                font-weight: bold;
+                text-transform: uppercase;
+                position: absolute;
+                right: -80%;
+                top: 43%;
                     &:hover {
                         cursor: pointer;
                         background-color: #1576d1;
                         box-shadow: 4px 4px 5px grey;
                         transition: .5s;
                     }
-        }
+            }
+            input[type="file"] {
+                display: none;
+            }
+    }
+    @media (max-width: 1600px) {
+        .main__signup {
+            &__body {
+                &__input {
+                    margin-bottom: 15px;
+                }
+                &__adapt {
+                    display: flex;
+                }
+                &__name {
+                    width: 80%;
+                    margin-bottom: 150px;
+                }
+                &__picture {
+                    &__label {
+                        top: 130px;
+                        right: -250px;
+                    }
+                    &__preview {
+                        top: 136px;
+                        right: -244px;
+                    }
+                }
+                &__mdp {
+                    margin-top: -120px;
+                }
+            }
+            &__button {
+                top: 400px;
+                right: 0;
+            }
+        }   
+    }
+    @media (max-width: 1200px) {
+        .main__signup {
+            height: 900px;  
+            margin-bottom: 100px; 
+                &__body {
+                    margin-top: 30px;
+                        &__input {
+                            width: 90%;
+                        }
+                        &__picture {
+                            &__label {
+                                right: 10%;
+                                top: 400px;
+                            }
+                            &__preview {
+                                right: 12%;
+                                top: 406px;
+                            }
+                        }
+                        &__adapt {
+                            width: 150%;
+                        }
+                } 
+                &__button {
+                    top: 650px;
+                    right: -25px;
+                }
+        }   
+    }
+    @media (max-width: 1110px) {
+        .main__signup {
+            &__button {
+                right: -20px;
+            }
+        }   
+    }
+    @media (max-width: 1060px) {
+        .main__signup {
+            &__button {
+                right: -15px;
+            }
+        }   
+    }
+    @media (max-width: 985px) {
+        .main__signup {
+            &__button {
+                right: -10px;
+            }
+        }   
+    }
+    @media (max-width: 950px) {
+        .main__signup {
+            height: 1000px;
+                &__img {
+                    float: none;
+                }
+                &__login {
+                    padding: 0;
+                    margin-top: 0;
+                    text-align: center;
+                }
+                &__body {
+                    margin: auto;
+                    width: 90%;
+                        &__input {
+                            width: 62%;
+                        }
+                        &__name {
+                            width: 70%;
+                        }
+                        &__picture {
+                                &__label {
+                                    right: 35%;
+                                    top: 400px;
+                                }
+                                &__preview {
+                                    top: 406px;
+                                    right: 36.5%;
+                                }
+                            }
+                }
+                &__button {
+                    right: 100px;
+                    top: 650px;
+                }
+        }   
+    }
+    @media (max-width: 900px) {
+        .main__signup {
+            &__button {
+                right: 85px;
+            }
+        }   
+    }
+    @media (max-width: 850px) {
+        .main__signup {
+            &__button {
+                right: 70px;
+            }
+        }   
+    }
+    @media (max-width: 800px) {
+        .main__signup {
+            &__button {
+                right: 60px;
+            }
+        }   
+    }
+    @media (max-width: 750px) {
+        .main__signup {
+            &__button {
+                right: 50px;
+            }
+        }   
+    }
+
+    @media (max-width: 700px) {
+        .main__signup {
+            &__button {
+                right: 40px;
+            }
+        }   
+    }
+    @media (max-width: 650px) {
+        .main__signup {
+            &__button {
+                right: 25px;
+            }
+        }   
     }
 </style>

@@ -2,23 +2,7 @@
 
 ## Project setup
 ```
-npm install
+Pour lancer le projet, exécuter "npm install" à la racine du projet et dans le dossier backend.
+lancer ensuite la commande "npm run serve" depuis la racine du projet, et "node server" depuis le dossier backend.
 ```
 
-### Compiles and hot-reloads for development
-```
-npm run serve
-```
-
-### Compiles and minifies for production
-```
-npm run build
-```
-
-### Lints and fixes files
-```
-npm run lint
-```
-
-### Customize configuration
-See [Configuration Reference](https://cli.vuejs.org/config/).

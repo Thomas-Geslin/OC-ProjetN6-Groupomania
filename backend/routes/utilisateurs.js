@@ -9,5 +9,7 @@ router.post('/signup', multer, utilisateurCtrl.signup);
 router.post('/login', utilisateurCtrl.login);
 router.delete('/delete', utilisateurCtrl.deleteUser);
 router.post('/', utilisateurCtrl.getUser);
+router.get('/', utilisateurCtrl.getAllUser);
+router.get('/admin/:id', utilisateurCtrl.isAdmin);
 
 module.exports = router;

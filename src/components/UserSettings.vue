@@ -23,7 +23,17 @@ export default {
             }
         }
     },
+    beforeUpdate() {
+        const token = localStorage.getItem('token');
+        if(!token) {
+            location.href = "http://localhost:8080"
+        }
+    },
     beforeCreate() {
+        const token = localStorage.getItem('token');
+        if(!token) {
+            location.href = "http://localhost:8080"
+        }
         let id = this.$route.query.id;
         fetch('http://localhost:3000/api/utilisateur', {
                 method: "POST",

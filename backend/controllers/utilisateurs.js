@@ -60,10 +60,27 @@ exports.login = (req, res) => {
     });
 }
 
+/* Fonction permettant de récupérer tous les utilisateurs */
+exports.getAllUser = (req, res) => {
+    db.query("SELECT * FROM utilisateur ORDER BY utilisateurId DESC LIMIT 3 ", function(err, result) {
+        if(err) throw err;
+        return res.status(200).json(result);
+    })
+}
+
 /* Fonction permettant de récupérer l'utilisateur' */
 exports.getUser = (req, res) => {
     const id = req.body.id;
     db.query("SELECT * FROM utilisateur WHERE utilisateurId = ?;", [id], function(err, result) {
+        if(err) throw err;
+        return res.status(200).json(result)
+    });
+}
+
+/* Fonction permettant de renvoyer si un utilisateur est admin ou non */
+exports.isAdmin = (req, res) => {
+    const id = req.params.id;
+    db.query("SELECT utilisateurIsAdmin FROM utilisateur WHERE utilisateurId = ?;", [id], function(err, result) {
         if(err) throw err;
         return res.status(200).json(result)
     });

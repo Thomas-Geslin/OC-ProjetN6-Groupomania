@@ -3,10 +3,11 @@ export default {
     name: 'SocialNetwork',
     data: function() {
         return {
-            admin: false,
+            admin: '',
             id: '',
             postTxt: '',
-            posts: null
+            posts: null,
+            users: null
         }
     },
     methods:{
@@ -118,6 +119,20 @@ export default {
         }
     },
     created() {
+        let id = this.$route.query.id;
+        this.id = id;
+        /* Fonction récupèrant les utilisateurs du réseau */
+        fetch('http://localhost:3000/api/utilisateur')
+            .then(res => res.json())
+            .then(value => this.users = value)
+            .catch(err => console.log(err));
+
+        /* Fonction permettant de savoir si l'utilisateur a un compte admin ou non */
+        fetch('http://localhost:3000/api/utilisateur/admin/' + this.id)
+            .then(res => res.json())
+            .then(value => this.admin = value[0].utilisateurIsAdmin)
+            .catch(err => console.log(err));
+            
         /* Fonction récupérant les posts présent dans la BDD au chargement de la page */
         fetch('http://localhost:3000/api/post') 
             .then(res => res.json())
@@ -126,8 +141,6 @@ export default {
             .catch(err => console.log(err));
         
         /* Requête récupérant la photo de profil de l'utilsateur et l'intègre au DOM */
-        let id = this.$route.query.id;
-        this.id = id;
         fetch('http://localhost:3000/api/utilisateur', {
                 method: "POST",
                 headers: {
@@ -139,10 +152,8 @@ export default {
             .then(function (res) { 
                 return res.json(); 
             })
-            .then(function (result) { 
-                for(let picture of result) {
-                    insertPicture(picture.utilisateurPicture);
-                }
+            .then(function(result) {
+                insertPicture(result[0].utilisateurPicture)
             })
             .catch(function(err) { 
                 console.log(err) 
@@ -159,9 +170,6 @@ export default {
             const gear = document.getElementById('gear');
             gear.setAttribute('href', "http://localhost:8080/social-network/settings?id=" + id)
         }
-
-        /* Si jamais l'id correspond à celui de l'admin lui accorde les droits de supprimer tous les posts */
-        if(this.id == 70) this.admin = true;
     }
 }
 </script>
@@ -214,7 +222,7 @@ export default {
                     </div>
                     <!-- Menu de modification -->
                     <font-awesome-icon :icon="['fas', 'ellipsis']" @click="postMenuAppear(post.postId)" v-if="this.id == post.postUserId" class="main__post__container__info__dot"/>
-                    <font-awesome-icon :icon="['fas', 'ellipsis']" @click="postMenuAppear(post.postId)" v-if="this.admin == true" class="main__post__container__info__dot"/>
+                    <font-awesome-icon :icon="['fas', 'ellipsis']" @click="postMenuAppear(post.postId)" v-if="this.admin === 'true'" class="main__post__container__info__dot"/>
                     <ul class="main__post__container__info__dot--menu postMenu" v-bind:id="post.postId">
                         <div class="main__post__container__info__dot--arrow"></div>
                         <li>Modifier</li>
@@ -230,17 +238,16 @@ export default {
 
         <!-- =========== PARTIE AMIS ========== -->
         <div class="main__friends">
-            <h1 class="main__friends__title">AMIS</h1>
+            <h1 class="main__friends__title">UTILISATEURS</h1>
 
-            <div class="main__friends__div">
+            <div v-for="user in users" :key="user" class="main__friends__div">
                 <div class="main__friends__div__box">
-                    <div class="main__friends__div__box--photo"></div>
-                </div>
-                <div class="main__friends__div__box">
-                    <div class="main__friends__div__box--photo"></div>
-                </div>
-                <div class="main__friends__div__box">
-                    <div class="main__friends__div__box--photo"></div>
+                    <img :src='user.utilisateurPicture' class="main__friends__div__box__photo">
+                    <p class="main__friends__div__box__email">Email : {{ user.utilisateurEmail }}</p>
+                    <div class="main__friends__div__box__name">
+                        <p class="main__friends__div__box__name--first">Nom : {{ user.utilisateurFirstName }}</p>
+                        <p>{{ user.utilisateurLastName }}</p>
+                    </div>
                 </div>
             </div>
         </div>
@@ -472,20 +479,23 @@ export default {
                     &__title {
                         color: black;
                         margin-top: 30px;
+                        margin-bottom: 20px;
                     }
                     &__div {
                         display: flex;
                         flex-direction: column;
                         justify-content: space-around;
-                        height: 600px;
+                        height: auto;
                             &__box {
-                                background-color: grey;
+                                font-size: 18px;
+                                background-color: #F2F5F7;
                                 width: 90%;
                                 height: 150px;
                                 margin: auto;
+                                margin-bottom: 50px;      
                                 border-radius: 15px;
                                 position: relative;
-                                    &--photo {
+                                    &__photo {
                                         background-color: #FFF;
                                         border-radius: 10px;
                                         width: 100px;
@@ -494,14 +504,22 @@ export default {
                                         top: 17%;
                                         left: 6%;
                                     }
+                                    &__email {
+                                        display: flex;
+                                        padding-left: 160px;
+                                        margin: 0;
+                                        margin-top: 45px;
+                                    }
+                                    &__name {
+                                        display: flex;
+                                        padding-left: 160px;
+                                            &--first {
+                                                padding-right: 7px;
+                                            }
+                                    }
                             }
                     }
             }
-    }
-
-    .test {
-        width: 50px;
-        height: 50px;
     }
 
     @media (min-width: 1121px) and (max-width: 1500px) {

@@ -7,7 +7,7 @@ export default {
             if(confirm) {
                 let userId = this.$route.query.id;
                 fetch('http://localhost:3000/api/utilisateur/delete', {
-                    method: "POST",
+                    method: "DELETE",
                     headers: {
                         'Accept': 'application/json',
                         'Content-Type': 'application/json'
@@ -23,7 +23,17 @@ export default {
             }
         }
     },
+    beforeUpdate() {
+        const token = localStorage.getItem('token');
+        if(!token) {
+            location.href = "http://localhost:8080"
+        }
+    },
     beforeCreate() {
+        const token = localStorage.getItem('token');
+        if(!token) {
+            location.href = "http://localhost:8080"
+        }
         let id = this.$route.query.id;
         fetch('http://localhost:3000/api/utilisateur', {
                 method: "POST",
@@ -72,10 +82,15 @@ export default {
 }
 </script>
 
+
+
+
+
 <template>
     <div class="body">
         <a id="back"><font-awesome-icon :icon="['fas', 'arrow-left-long']" class="body__back"/></a>
 
+        <!-- =========== INFOS UTILISATEUR ========== -->
         <div class="body__settings">
             <div class="body__settings__picture" id="picture"></div>
 
@@ -88,11 +103,18 @@ export default {
             <button class="body__settings__delete" @click="deleteProfil">Supprimer le profil</button>
         </div>
 
+        <!-- =========== AMIS ========== -->
         <div class="body__friends">
+            <h1 class="body__friends_title">AMIS</h1>
             
         </div>
     </div>
 </template>
+
+
+
+
+
 
 <style lang="scss">
     .body {
@@ -104,6 +126,7 @@ export default {
                 border-radius: 15px;
                 width: 30%;
                 height: 750px;
+                min-width: 445px;
                     &__picture {
                         overflow: hidden;
                         width: 200px;
@@ -154,5 +177,20 @@ export default {
                 font-size: 40px;
                 color: black;
             }
+    }
+    @media (max-width: 1120px) {
+        .body {
+            flex-direction: column;
+                &__settings {
+                    margin: auto;
+                    margin-bottom: 50px;
+                }
+                &__friends {
+                    margin: auto;
+                    width: 70%;
+                    margin-bottom: 75px;
+                    min-width: 445px;
+                }
+        }
     }
 </style>

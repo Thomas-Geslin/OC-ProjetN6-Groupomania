@@ -1,4 +1,5 @@
 const db = require('../config/db');
+const fs = require('fs');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 
@@ -45,9 +46,9 @@ exports.login = (req, res) => {
                 return res.status(200).json({
                     userId: result[0].utilisateurId,
                     token: jwt.sign(
-                      { userId: result.utilisateurId },
-                      'RANDOM_TOKEN_SECRET',
-                      { expiresIn: '24h' }
+                        { id: result[0].utilisateurId },
+                        'RANDOM_TOKEN_SECRET',
+                        { expiresIn: '2h' }
                     )
                 });
             } else {
@@ -59,6 +60,14 @@ exports.login = (req, res) => {
     });
 }
 
+/* Fonction permettant de récupérer tous les utilisateurs */
+exports.getAllUser = (req, res) => {
+    db.query("SELECT * FROM utilisateur ORDER BY utilisateurId DESC LIMIT 3 ", function(err, result) {
+        if(err) throw err;
+        return res.status(200).json(result);
+    })
+}
+
 /* Fonction permettant de récupérer l'utilisateur' */
 exports.getUser = (req, res) => {
     const id = req.body.id;
@@ -68,11 +77,48 @@ exports.getUser = (req, res) => {
     });
 }
 
+/* Fonction permettant de renvoyer si un utilisateur est admin ou non */
+exports.isAdmin = (req, res) => {
+    const id = req.params.id;
+    db.query("SELECT utilisateurIsAdmin FROM utilisateur WHERE utilisateurId = ?;", [id], function(err, result) {
+        if(err) throw err;
+        return res.status(200).json(result)
+    });
+}
+
 /* Fonction permettant de supprimer un utilisateur */
 exports.deleteUser = (req, res) => {
     const id = req.body.userId;
+    // Supprime le profil de l'utilisateur et sa photo de profil
+    db.query("SELECT utilisateurPicture FROM utilisateur WHERE utilisateurId = ?", [id], function(err, result) {
+        if (err) throw err;
+        for(let value of result) {
+        const filename = value.utilisateurPicture.split('/images/')[1];
+        // Supprime l'image de l'utilisateur
+            fs.unlink(`images/${filename}`, (err => { if(err) console.log(err) }));
+        }
+    })
+    // Supprime l'utilisateur
     db.query("DELETE FROM utilisateur WHERE utilisateurId =?", [id], function(err) {
         if(err) throw err;
         return res.status(200).json({ message: 'Votre compte a bien été supprimé !' })
+    })
+
+    // Supprime les posts de l'utilisateur et les images de ses posts
+    db.query("SELECT postImg FROM post WHERE postUserId = ?", [id], function(err, result) {
+        if (err) throw err;
+        for(let image of result) {
+        if(image.postImg === 'http://localhost:3000/images/undefined') {
+            console.log('Ce post ne contient pas d\'image')
+        } else {
+            const filename = image.postImg.split('/images/')[1];
+            // Supprime les images des posts
+                fs.unlink(`images/${filename}`, (err => { if(err) console.log(err) }));
+            }
+        }
+    })
+    // Supprime les posts de l'utilisateur
+    db.query("DELETE FROM post WHERE postUserId =?", [id], function(err) {
+        if(err) throw err;
     })
 }

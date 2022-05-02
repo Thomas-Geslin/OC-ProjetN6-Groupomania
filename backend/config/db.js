@@ -4,7 +4,8 @@ const mysql = require('mysql2');
 let db = mysql.createConnection({
     host     : 'localhost',
     user     : 'root',
-    password : process.env.SQL_PASSWORD,
+    // Le mdp devra être caché pour la production
+    password : 'Oc0604love*',
     database : 'groupomania'
 });
   

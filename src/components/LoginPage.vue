@@ -3,7 +3,7 @@ export default {
 	name: 'LoginPage',
     data: function() {
         return {
-            mode: 'login',
+            mode: 'signup',
             userEmail:'',
             userFirstName: '',
             userLastName: '',
@@ -141,14 +141,14 @@ export default {
         <img class="main__login__img" src="../assets/icon.png" alt="logo groupomania"/>
 
         <div class="main__login__body">
-            <div>
-                <p class="main__login__body__text">Email</p>
-                <input type="text" name="id" class="main__login__body__input" v-model="loginEmail">
+            <div class="main__login__body__div">
+                <label for="email" class="main__login__body__label">Email</label>
+                <input type="text" name="id" class="main__login__body__input" id="email" v-model="loginEmail">
             </div>
 
-            <div>
-                <p class="main__login__body__text">Mot de passe</p>
-                <input type="password" name="password" class="main__login__body__input" v-model="loginPassword">
+            <div class="main__login__body__div">
+                <label for="prenom" class="main__login__body__label">Prénom</label>
+                <input type="password" name="password" class="main__login__body__input" id="prenom" v-model="loginPassword">
             </div>
 
             <button class="main__login__button" v-if="mode === 'login'" @click="login">se connecter</button>
@@ -162,29 +162,28 @@ export default {
 
         <div class="main__signup__body">
             <div>
-                <p class="main__signup__body__text">Email</p>
-                <input type="text" name="id" class="main__signup__body__input" v-model="userEmail" @change="mailVerification">
+                <label for="Email" class="main__signup__body__text">Email</label>
+                <input type="text" name="id" class="main__signup__body__input" id="Email" v-model="userEmail" @change="mailVerification">
                 <p id="emailErr" class="main__signup__body__error"></p>
             </div>
             
-            <div class="main__signup__body__adapt">
-                <div>
-                    <p class="main__signup__body__text">Nom</p>
-                    <input class="main__signup__body__name" type="text" v-model="userLastName" v-if="mode === 'signup'" @change="lastNameVerification">
+            <div>
+                <div class="main__signup__body__adapt">
+                    <label for="LastName" class="main__signup__body__text">Nom</label>
+                    <input class="main__signup__body__name main__signup__body__name--last" id="LastName" type="text" v-model="userLastName" v-if="mode === 'signup'" @change="lastNameVerification">
                     <p id="lastNameErr" class="main__signup__body__error"></p>
                 </div>
 
-                <div>
-                    <p class="main__signup__body__text">Prénom</p>
-                    <input class="main__signup__body__name" type="text" v-model="userFirstName" v-if="mode === 'signup'" @change="firstNameVerification">
+                <div class="main__signup__body__adapt">
+                    <label for="FirstName" class="main__signup__body__text">Prénom</label>
+                    <input class="main__signup__body__name" type="text" id="FirstName" v-model="userFirstName" v-if="mode === 'signup'" @change="firstNameVerification">
                     <p id="firstNameErr" class="main__signup__body__error"></p>
                 </div>
             </div>
    
             <div class="main__signup__body__mdp">
-                <p class="main__signup__body__text">Mot de passe</p>
-                <input type="password" name="password" class="main__signup__body__input" v-model="userPassword" @change="formVerification">
-                <p></p>
+                <label for="Password" class="main__signup__body__text">Mot de passe</label>
+                <input type="password" name="password" class="main__signup__body__input" id="Password" v-model="userPassword" @change="formVerification">
             </div>
 
             <form method="POST" action="http://localhost:3000/api/utilisateur/signup" enctype="multipart/form-data" target="target" id="pictureContainer">
@@ -204,7 +203,7 @@ export default {
 
 <style lang="scss">
     body {
-        background-color: #15AAD1;
+        background-color: #d1515a;
         margin: 0;
         padding: 0;
     }
@@ -296,19 +295,15 @@ export default {
             margin-top: 25px;
         }
         &__body {
-            &__text {
-                font-size: 22px;
-                text-align: left;
-                margin-left: 8%;
-                margin-bottom: 10px;
+            &__div {
+                display: flex;
+                flex-direction: column;
+                margin-left: 10%;
             }
-            &__name {
-                width: 35%;
-                background-color: #C7D0D8;
-                border: 6px solid #9AA7B2;
-                border-radius: 15px;
-                height: 50px;
+            &__label {
+                text-align: left;
                 font-size: 22px;
+                margin-bottom: 10px;
             }
             &__input {
                 width: 80%;
@@ -317,10 +312,11 @@ export default {
                 border-radius: 15px;
                 height: 50px;
                 font-size: 22px;
+                margin-bottom: 30px;
             }
         }
         &__button {
-            background-color: #15AAD1;
+            background-color: #d1515a;
             margin-top: 10%;
             width: 60%;
             height: 100px;
@@ -331,7 +327,7 @@ export default {
             text-transform: uppercase;
             &:hover {
                 cursor: pointer;
-                background-color: #1576d1;
+                background-color: #af3e46;
                 box-shadow: 4px 4px 5px grey;
                 transition: .5s;
             }
@@ -378,6 +374,10 @@ export default {
                         margin: 0;
                         margin-bottom: 10px;
                     }
+                    &__adapt {
+                        display: flex;
+                        flex-direction: column;
+                    }
                     &__name {
                         background-color: #C7D0D8;
                         border: 6px solid #9AA7B2;
@@ -385,6 +385,7 @@ export default {
                         height: 50px;
                         font-size: 22px;
                         margin-bottom: 30px;
+                        width: 50%;
                     }
                     &__error {
                         color: red;
@@ -398,6 +399,7 @@ export default {
                         border-radius: 15px;
                         height: 50px;
                         font-size: 22px;
+                        margin-top: 10px;
                         margin-bottom: 30px;
                         width: 98%;
                     }
@@ -436,7 +438,7 @@ export default {
                     }
             }
             &__button {
-                background-color: #15AAD1;
+                background-color: #d1515a;
                 width: 310px;
                 height: 100px;
                 border: none;
@@ -449,7 +451,7 @@ export default {
                 top: 43%;
                     &:hover {
                         cursor: pointer;
-                        background-color: #1576d1;
+                        background-color: #af3e46;
                         box-shadow: 4px 4px 5px grey;
                         transition: .5s;
                     }
@@ -618,6 +620,39 @@ export default {
         .main__signup {
             &__button {
                 right: 25px;
+            }
+        }   
+    }
+    @media (max-width: 425px) {
+        .main__signup {
+            height: 1100px;
+            &__body {
+                &__name {
+                    width: 62%;
+                        &--last {
+                            margin-bottom: 20px;
+                        }
+                }
+                &__adapt {
+                    display: flex;
+                    flex-direction: column;
+                }
+                &__picture {
+                        &__label {
+                            top: 500px;
+                            right: 30px;
+                        }
+                        &__preview {
+                            top: 500px;
+                            right: 30px;
+                        } 
+                }
+            }
+            &__button {
+                width: 210px;
+                font-size: 20px;
+                top: 720px;
+                right: 15px;
             }
         }   
     }

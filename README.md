@@ -34,7 +34,7 @@ node server
 ```
 
 ## Front-End Setup
-Assurez-vous d'abord d'avoir VueJS d'installer :
+Assurez-vous d'abord d'avoir VueJS d'installé :
 ```
 npm install -g @vue/cli
 ```

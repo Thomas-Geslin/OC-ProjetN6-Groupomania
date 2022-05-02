@@ -86,6 +86,19 @@ exports.isAdmin = (req, res) => {
     });
 }
 
+/* Fonction permettant de modifier un utilisateur */
+exports.modifyUser = (req, res) => {
+    const firstName = req.body.firstName;
+    const lastName = req.body.lastName;
+    const id = req.body.id;
+    if(firstName.length === 0 || lastName.length === 0) return res.status(400).json({error: 'Merci de rentrez un nouveau nom !'});
+    // Modifie l'utilisateur
+    db.query("UPDATE utilisateur SET utilisateurFirstName=?, utilisateurLastName=? WHERE utilisateurId =?", [firstName, lastName, id], function(err) {
+        if(err) throw err;
+        return res.status(200).json({ message: 'Votre compte a bien été modifié !' });
+    })
+}
+
 /* Fonction permettant de supprimer un utilisateur */
 exports.deleteUser = (req, res) => {
     const id = req.body.userId;

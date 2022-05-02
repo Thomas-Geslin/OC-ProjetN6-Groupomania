@@ -165,6 +165,7 @@ export default {
             let img = document.createElement('img');
             img.setAttribute('id', 'picture');
             img.setAttribute('src', picture);
+            img.setAttribute('alt', 'Photo de Profil de l\'utilisateur')
             container.appendChild(img);
             // Met le bon lien pour l'icone parametre
             const gear = document.getElementById('gear');
@@ -213,7 +214,7 @@ export default {
             <div v-for="post in posts" :key="post" class="main__post__container">
                 <div class="main__post__container__info">
                     <!-- Photo de profil -->
-                    <img :src='post.postUserPicture' class="main__post__container__img">
+                    <img :src='post.postUserPicture' alt="Photo de profil de l'utilisateur qui as crée le post" class="main__post__container__img">
                     <!-- Infos du post -->
                     <div class="main__post__container__info__user">
                         <p>{{ post.postDate.split('T')[0] }}</p>
@@ -232,22 +233,19 @@ export default {
                 <!-- Texte du post -->
                 <p class="main__post__container__text">{{ post.postTxt }}</p>
                 <!-- Image du post -->
-                <img :src='post.postImg' class="main__post__container__postImage" v-if="post.postImg">
+                <img :src='post.postImg' alt="Photo ajoutée au post" class="main__post__container__postImage" v-if="post.postImg">
             </div>
         </div>
 
-        <!-- =========== PARTIE AMIS ========== -->
+        <!-- =========== PARTIE UTILISATEURS ========== -->
         <div class="main__friends">
             <h1 class="main__friends__title">UTILISATEURS</h1>
 
             <div v-for="user in users" :key="user" class="main__friends__div">
                 <div class="main__friends__div__box">
-                    <img :src='user.utilisateurPicture' class="main__friends__div__box__photo">
-                    <p class="main__friends__div__box__email">Email : {{ user.utilisateurEmail }}</p>
-                    <div class="main__friends__div__box__name">
-                        <p class="main__friends__div__box__name--first">Nom : {{ user.utilisateurFirstName }}</p>
-                        <p>{{ user.utilisateurLastName }}</p>
-                    </div>
+                    <img :src='user.utilisateurPicture' alt="Photo de profil de l'utilisateur" class="main__friends__div__box__photo">
+                    <p class="main__friends__div__box__last">Nom : {{ user.utilisateurLastName }}</p>
+                    <p class="main__friends__div__box__first">Prénom : {{ user.utilisateurFirstName }}</p>
                 </div>
             </div>
         </div>
@@ -353,7 +351,7 @@ export default {
                                 margin-bottom: 15px;
                             }
                             &__button {
-                                background-color: #1877F2;                               
+                                background-color: #b64a51;                               
                                 color: white;
                                 font-size: 16px;
                                 font-weight: bold;
@@ -504,13 +502,13 @@ export default {
                                         top: 17%;
                                         left: 6%;
                                     }
-                                    &__email {
+                                    &__last {
                                         display: flex;
                                         padding-left: 160px;
                                         margin: 0;
                                         margin-top: 45px;
                                     }
-                                    &__name {
+                                    &__first {
                                         display: flex;
                                         padding-left: 160px;
                                             &--first {

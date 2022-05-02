@@ -3,7 +3,7 @@ export default {
 	name: 'LoginPage',
     data: function() {
         return {
-            mode: 'signup',
+            mode: 'login',
             userEmail:'',
             userFirstName: '',
             userLastName: '',

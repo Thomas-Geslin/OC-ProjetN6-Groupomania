@@ -9,7 +9,7 @@ en suivant le schéma du document 'database_setup' qui se trouve dans le dossier
 Ce dossier contient un autre fichier nommé *db.js* qui permet de se connecter à la base de données.
 Vous devez le remplir comme suit :
 
-    ```
+   
     "username": "Nom de L'utilisateur de la base de données MySQL",
 
     "password": "mot de passe de l'utilisateur de la base de données MySQL",
@@ -17,7 +17,7 @@ Vous devez le remplir comme suit :
     "database": "groupomania",
 
     "host": "localhost"
-    ```
+  
 
 ## Back-End Setup
 Dans votre terminal tapez :
